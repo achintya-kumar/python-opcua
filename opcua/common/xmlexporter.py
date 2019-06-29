@@ -200,7 +200,13 @@ class XmlExporter(object):
         nodeid = node.nodeid
         parent = node.get_parent()
         displayname = node.get_display_name().Text
-        desc = node.get_description().Text
+
+        desc = None
+        try:
+            desc = node.get_description().Text
+        except Exception as e:
+            print("Description unavailable for ", node, e)
+
         node_el = Et.SubElement(self.etree.getroot(), nodetype)
         node_el.attrib["NodeId"] = self._node_to_string(nodeid)
         node_el.attrib["BrowseName"] = self._bname_to_string(browsename)
@@ -244,9 +250,15 @@ class XmlExporter(object):
         rank = node.get_value_rank()
         if rank != -1:
             el.attrib["ValueRank"] = str(int(rank))
-        dim = node.get_attribute(ua.AttributeIds.ArrayDimensions)
-        if dim.Value.Value:
-            el.attrib["ArrayDimensions"] = ",".join([str(i) for i in dim.Value.Value])
+
+        dim = None
+        try:
+            dim = node.get_attribute(ua.AttributeIds.ArrayDimensions)
+            if dim.Value.Value:
+                el.attrib["ArrayDimensions"] = ",".join([str(i) for i in dim.Value.Value])
+        except Exception as e:
+            print("ArrayDimensions unavailable for ", node, e)
+
         el.attrib["DataType"] = dtype_name
         self.value_to_etree(el, dtype_name, dtype, node)
 
